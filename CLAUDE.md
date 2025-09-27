@@ -77,7 +77,7 @@ When the user asks the assistant to `commit`, the assistant must:
 
 ## Commit & Push
 
-* After editing `research-notes.md` (or not, per above), run the following git commands:
+* After editing `research-notes.md` (or not, per above), run the following git commands when appropriate:
 
 ```bash
 git add research-notes.md
@@ -85,15 +85,52 @@ git commit -m "docs(research): update research-notes — <short-topic-slug> — 
 git push origin HEAD
 ```
 
-* The commit message should start with `docs(research):` and include the topic slug and date.
+* The commit message should start with `docs(research):` and include the topic slug and date when **only** the research-notes file changed.
 * If `research-notes.md` was unchanged (user provided nothing and no edits were needed), skip the `git add`/`commit` steps for that file but still commit other staged changes if the user intended a broader commit. Clarify with the user if unsure.
+
+### Commit message rules (refined)
+
+1. **Only research-notes.md changed** →
+   Use the research-note–specific message format:
+
+   ```
+   docs(research): update research-notes — <topic-slug> — YYYY-MM-DD
+   ```
+
+2. **Other files changed as well** →
+
+   * Generate a **summary commit message** that covers the full set of staged changes.
+   * The assistant should inspect `git diff --cached --name-only` to determine what is staged and then produce a concise, descriptive title line (e.g., `feat(api): add rate limiting checks`, `fix(auth): handle token expiry`, `refactor(cli): simplify argument parsing`).
+   * Follow the title line with short bullet points listing the main changes (max 6 bullets). If `research-notes.md` was updated, include a bullet such as:
+
+     * `docs: update research-notes — api-rate-limiting — 2025-09-27`
+   * If multiple research topics were added in the same commit, list them under a `docs:` subsection as bullets.
+
+3. **Message generation workflow**:
+
+   * Detect staged files with `git diff --cached --name-only`.
+   * If only `research-notes.md` is staged, use case (1).
+   * Otherwise assemble a candidate commit message according to case (2).
+   * Present the generated commit message to the user and **ask for final confirmation or manual edit** before running `git commit`.
+
+4. **If the user prefers explicit control**: support two commands:
+
+   * `commit` → perform only `git commit` (no push), after confirmation.
+   * `commit and push` → perform `git commit` and `git push`, after confirmation.
+
+### Do NOT add the following to git commit messages
 
 * **Do not** add the following in the git commit message:
 
-        🤖 Generated with [Claude Code](https://claude.ai/code)
+```
+🤖 Generated with [Claude Code](https://claude.ai/code)
 
-        Co-Authored-By: Claude <noreply@anthropic.com>"
-        Create commit with descriptive message  
+Co-Authored-By: Claude <noreply@anthropic.com>"
+Create commit with descriptive message
+```
+
+* Avoid adding automated agent attribution or emoji banners in commit messages. The commit message should be descriptive, human-readable, and focused on the code/research changes.
+* Always ask the user to confirm and, if needed, to manually edit the generated message before committing.
 
 ---
 
@@ -104,12 +141,21 @@ git push origin HEAD
 3. User: "Add notes about 'api-rate-limiting'"
 4. Assistant: "Searching conversation history for questions or findings related to `api-rate-limiting`..."
 
-   * If found: "I found 3 relevant excerpts — I'll add them under `## 2025-09-27 — Topic: api-rate-limiting` and then commit. Proceed? (yes/no)"
+   * If found: "I found 3 relevant excerpts — I'll add them under `## 2025-09-27 — Topic: api-rate-limiting` and then include them in the commit message. Proceed? (yes/no)"
    * If none found: "I didn't find any matching conversation. I'll add a heading `## 2025-09-27 — Topic: api-rate-limiting` with suggestions for you to fill. Proceed? (yes/no)"
 5. User: "yes"
-6. Assistant: performs file edit, then runs the git commands and reports back:
+6. Assistant: performs file edit, inspects staged files, generates a descriptive commit message (including research-notes update if applicable), then runs the git commands and reports back:
 
-   * "Committed `research-notes.md` with message `docs(research): update research-notes — api-rate-limiting — 2025-09-27` and pushed to `origin`."
+   * Example output if only notes changed: `Committed with message: docs(research): update research-notes — api-rate-limiting — 2025-09-27 and pushed to origin.`
+   * Example output if code + notes changed:
+
+     ```
+     Committed with message:
+     feat(api): add rate limiting checks
+     - Updated service handler for 429 responses
+     - Added unit tests for rate-limit retry
+     - docs: update research-notes — api-rate-limiting — 2025-09-27
+     ```
 
 ---
 
@@ -155,6 +201,7 @@ function handleCommitRequest(userInput):
 
 ## Change log
 
-* v1.0 — Initial specification.
+* v1.1 — Updated commit-message logic and explicit ban on agent attribution in commit messages.
+* v1.2 — Updated example interaction flow to use refined commit message logic.
 
 *End of `claude.md`*

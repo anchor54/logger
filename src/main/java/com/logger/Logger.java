@@ -1,23 +1,37 @@
 package com.logger;
 
 public class Logger {
-    public static void debug(String message) {
+
+    private static Logger logger = null;
+
+    public static Logger getLogger() {
+        if (logger == null) {
+            logger = new Logger();
+        }
+        return logger;
+    }
+
+    private Logger() {
+        // Do nothing
+    }
+
+    public void debug(String message) {
         System.out.println("[DEBUG] " + message);
     }
 
-    public static void info(String message) {
+    public void info(String message) {
         System.out.println("[INFO] " + message);
     }
 
-    public static void warning(String message) {
+    public void warning(String message) {
         System.out.println("[WARNING] " + message);
     }
 
-    public static void error(String message) {
+    public void error(String message) {
         System.out.println("[ERROR] " + message);
     }
 
-    public static void exception(String message) {
+    public void exception(String message) {
         System.out.println("[EXCEPTION] " + message);
     }
 }

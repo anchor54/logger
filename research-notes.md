@@ -107,5 +107,32 @@ public class Logger {
 - [ ] Official Java documentation on memory model
 - [ ] Performance benchmarks and studies
 
+## 2025-09-27 — Topic: static-to-singleton-transition
+
+Transition from static logging methods to singleton pattern for better design.
+
+### Found conversation excerpts
+- **Q:** how is creating a singleton instance of logger different from static instance? should both be configurable and be made thread safe?
+  **A / Findings:** Both approaches have similar thread safety issues but key differences: Singleton allows lazy initialization, more flexibility for multiple configurations, easier mocking/testing with instance methods. Static methods have eager initialization, less flexible, harder to mock. Both should be thread-safe and configurable.
+
+- **Q:** why are static methods not testable?
+  **A / Findings:** Static methods are harder to test due to: 1) No mocking/stubbing capability, 2) No dependency injection possible, 3) Global state issues in tests. Instance methods with dependency injection provide much better testability and flexibility.
+
+- **Code Evolution:** Moved from static method pattern to singleton pattern:
+  ```java
+  // Before: Static methods
+  Logger.info("message");
+
+  // After: Singleton instance
+  Logger logger = Logger.getLogger();
+  logger.info("message");
+  ```
+
+### Key Benefits of Singleton Transition
+- Better testability through dependency injection
+- More flexible for future enhancements (multiple loggers, configuration)
+- Maintains global access while allowing instance-based design
+- Easier to mock in unit tests
+
 ---
 *Last updated: 2025-09-27*
