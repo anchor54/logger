@@ -13,6 +13,6 @@ java {
 }
 
 application {
-    mainClass = 'com.example.Main'
+    mainClass = 'com.logger.Main'
 }
 
